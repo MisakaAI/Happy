@@ -13,6 +13,43 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "ruff>=0.15.9",
+dev = ["ruff>=0.15.9"]
+
+[tool.ruff]
+line-length = 88         # 每行代码最大长度
+target-version = "py314" # 目标 Python 版本
+
+# 排除目录
+exclude = [
+    ".git",        # Git 仓库元数据
+    ".venv",       # 虚拟环境目录
+    "__pycache__", # Python 编译缓存
+    "build",       # 构建产物
+    "dist",        # 打包产物
 ]
+fix = true # 自动修复
+
+[tool.ruff.lint]
+# 启用哪些规则类别
+select = [
+    "E",   # PEP8 风格错误（空格、缩进等）
+    "F",   # 逻辑错误（未定义变量、未使用变量等）
+    "I",   # import 排序（类似 isort）
+    "B",   # bugbear（潜在 bug，如可变默认参数）
+    "UP",  # 语法升级（自动推荐更现代 Python 写法）
+    "SIM", # 简化代码（if x == True  →  if x）
+]
+# 忽略指定错误码
+ignore = [
+    "E501", # E501 = 行太长（line too long）
+]
+
+[tool.ruff.format]
+quote-style = "double" # 字符串使用双引号
+indent-style = "space" # 使用空格缩进
+
+
+# 针对“特定文件”的规则例外
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"] # 在 __init__.py 文件中忽略 F401（未使用的导入）
+"tests/*" = ["S101"]     # 在测试代码里，允许使用 assert
