@@ -49,6 +49,14 @@ HAPPY 是一个轻量级的 **家庭版 ERP（Enterprise Resource Planning）系
 - 数据库：PostgreSQL
 - 前端：Vue
 
+```sh
+# 开发环境
+uv sync --dev
+
+# 部署
+uv sync
+```
+
 ---
 
 ## 📦 项目结构
