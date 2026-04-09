@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-from dotenv import dotenv_values
+
+import os
+
+from dotenv import load_dotenv
 from openai import OpenAI
 
-ENV = dotenv_values()
+load_dotenv()
 MODEL = {
     "glm": {
         "model": "glm-5.1",
-        "api_key": ENV.get("ZAI_API_KEY"),
+        "api_key": os.getenv("ZAI_API_KEY"),
         "url": "https://open.bigmodel.cn/api/coding/paas/v4/",
         "extra_body": {
             # 深度思考，默认开启。
@@ -17,7 +20,7 @@ MODEL = {
     },
     "deepseek": {
         "model": "deepseek-ai/deepseek-v3.2",
-        "api_key": ENV.get("NVIDIA_KEY"),
+        "api_key": os.getenv("NVIDIA_KEY"),
         "url": "https://integrate.api.nvidia.com/v1",
         "extra_body": {
             "chat_template_kwargs": {
@@ -50,17 +53,27 @@ def bigmodel(msg, model="glm"):
         extra_body=EXTRA_BODY,  # 额外参数
     )
 
-    return completion
-    # return completion.choices[0].message.content
+    return completion.choices[0].message.content
 
 
 if __name__ == "__main__":
     import time
     from datetime import datetime
 
+    test = """在一个黑色的袋子里放有三种口味的糖果，每种糖果有两种不同的形状。
+（圆形和五角星形，不同的形状靠手感可以分辨）
+现已知不同口味的糖和不同形状的数量统计如下表。
+苹果味|桃子味|西瓜味
+圆形|7|9|8
+五角星形|7|6|4
+参赛者需要在活动前决定摸出的糖果数目。
+那么，最少取出多少个糖果才能保证手中同时拥有不同形状的苹果味和桃子味的糖？
+（同时手中有圆形苹果味匹配五角星桃子味糖果，或者有圆形桃子味匹配五角星苹果味糖果都满足要求）
+"""
+
     start = time.time()
+    print(bigmodel(test))
     # print(bigmodel("背出师表", "deepseek"))
-    print(bigmodel("《前出师表》"))
     end = time.time()
     elapsed = end - start
 
