@@ -3,17 +3,29 @@ name = "Happy"
 version = "0.1.0"
 description = "Home Asset Platform powered by Python"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
+    "cryptography>=46.0.7",
+    "dotenv>=0.9.9",
     "fastapi[standard]>=0.135.3",
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.4",
+    "openai>=2.31.0",
     "psycopg[binary]>=3.3.3",
+    "pyjwt>=2.12.1",
     "requests>=2.33.1",
     "sqlmodel>=0.0.38",
-    "uvicorn[standard]>=0.42.0",
+    "uvicorn[standard]>=0.44.0",
 ]
 
+[[tool.uv.index]]
+url = "https://mirrors.ustc.edu.cn/pypi/simple"
+default = true
+
 [dependency-groups]
-dev = ["ruff>=0.15.9"]
+dev = [
+    "ruff>=0.15.9",
+]
 
 [tool.ruff]
 line-length = 88         # 每行代码最大长度
