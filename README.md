@@ -1,8 +1,6 @@
 # 😊 HAPPY
 
-> **基于 Python 的家庭资产管理平台（Home Asset Platform）**
-
-HAPPY 是一个轻量级的 **家庭版 ERP（Enterprise Resource Planning）系统**，用于帮助个人和家庭以结构化、系统化的方式管理资产、维护记录等信息。
+> **基于 Python 的家庭 AI 中枢（Home AI Platform）**
 
 ---
 
@@ -59,22 +57,6 @@ uv sync
 
 ---
 
-## 📦 项目结构
-
-```txt
-Happy/
-├── backend/
-│   ├── api/
-│   ├── models/
-│   ├── services/
-│   └── main.py
-├── frontend/
-├── docs/
-└── README.md
-```
-
----
-
 ## 📈 未来规划
 
 - IoT 接入
@@ -85,4 +67,4 @@ Happy/
 
 ## 📝 开源协议
 
-[DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](LICENSE)
+[DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE](https://www.wtfpl.net/txt/copying/)
