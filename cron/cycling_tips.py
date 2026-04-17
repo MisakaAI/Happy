@@ -59,8 +59,8 @@ def main():
         text += "\n"
 
     text += f"Current weather data: {weather}\n"
-    text += f"Current air Quality Data: {air_quality}\n"
-    text += f"Weather data for the next hour: {hourly['hourly']}\n"
+    text += f"Current air quality Data: {air_quality}\n"
+    text += f"Weather forecast for the next 24 hours: {hourly['hourly']}\n"
 
     start = time.time()
     bigmodel = AI()
