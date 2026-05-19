@@ -212,3 +212,5 @@ prompt.json
 
 alembic*
 alembic/*
+
+.vscode

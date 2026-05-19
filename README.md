@@ -53,6 +53,36 @@ uv sync --dev
 
 # 部署
 uv sync
+
+# 初始化 Alembic
+alembic init alembic
+
+# 配置数据库连接
+# alembic/env.py
+config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+target_metadata = SQLModel.metadata
+
+# 导入全部模型
+from app.models import *
+
+
+# 启用自动迁移
+context.configure(
+    connection=connection,
+    target_metadata=target_metadata,
+    compare_type=True,
+)
+# 生成迁移文件
+alembic revision --autogenerate
+
+# 执行迁移
+alembic upgrade head
+
+# 回到最初
+alembic downgrade base
+
+# 重新应用所有迁移
+alembic upgrade head
 ```
 
 ---
