@@ -1,23 +1,22 @@
 #!/usr/bin/env python3
 import json
-import os
 import time
 from datetime import datetime
 from pathlib import Path
 
 import jwt
 import requests
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-load_dotenv()
+ENV = dotenv_values()
 
-private_key_path = os.getenv("QWEATHER_PRIVATE_KEY")
+private_key_path = ENV.get("QWEATHER_PRIVATE_KEY")
 private_key = Path(private_key_path).read_text(encoding="utf-8")
-kid = os.getenv("QWEATHER_KID")
-sub = os.getenv("QWEATHER_SUB")
-url = os.getenv("QWEATHER_API_HOST")
-lon = os.getenv("QWEATHER_DEFAULT_LON")
-lat = os.getenv("QWEATHER_DEFAULT_LAT")
+kid = ENV.get("QWEATHER_KID")
+sub = ENV.get("QWEATHER_SUB")
+url = ENV.get("QWEATHER_API_HOST")
+lon = ENV.get("QWEATHER_DEFAULT_LON")
+lat = ENV.get("QWEATHER_DEFAULT_LAT")
 
 
 # JSON Web Token

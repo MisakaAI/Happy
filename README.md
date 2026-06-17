@@ -1,99 +1,10 @@
-# 😊 HAPPY
+# HAPPY
 
-> **基于 Python 的家庭 AI 中枢（Home AI Platform）**
+**H**ome **A**I **P**latform with **Py**thon
 
----
-
-## ✨ 功能特性
-
-### 🏠 资产管理
-
-- [ ] 管理家庭资产（家电、衣物、工具等）
-- [ ] 记录品牌、型号、购买时间、保修期、售后信息
-- [ ] 支持资产与位置绑定（房间 → 柜子 → 层级）
-
-### 🗂 空间管理
-
-- [ ] 支持层级结构：房子 → 房间 → 区域 → 位置
-- [ ] 快速定位物品存放位置
-
-### 🔧 维护管理
-
-- [ ] 记录维护历史（如空调清洗、热水器更换镁棒）
-- [ ] 支持周期性维护计划
-- [ ] 记录费用及服务人员
-
-### 💰 财务集成
-
-- [ ] 支持从外部记账 App 导入 CSV 数据
-- [ ] 将消费与资产/维护记录关联
-- [ ] 分析单个资产的生命周期成本
-
-### 👨‍🔧 联系人管理
-
-- [ ] 管理维修师傅等服务人员
-- [ ] 关联维护记录
-
-### 🔔 可扩展集成
-
-- [ ] 支持日历同步（CalDAV，如 Nextcloud）
-- [ ] 支持任务提醒（定期维护）
-
----
-
-## 🚀 技术栈
-
-- 后端：Python（FastAPI）
-- 数据库：PostgreSQL
-- 前端：Vue
-
-```sh
-# 开发环境
-uv sync --dev
-
-# 部署
-uv sync
-
-# 初始化 Alembic
-alembic init alembic
-
-# 配置数据库连接
-# alembic/env.py
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
-target_metadata = SQLModel.metadata
-
-# 导入全部模型
-from app.models import *
-
-
-# 启用自动迁移
-context.configure(
-    connection=connection,
-    target_metadata=target_metadata,
-    compare_type=True,
-)
-# 生成迁移文件
-alembic revision --autogenerate
-
-# 执行迁移
-alembic upgrade head
-
-# 回到最初
-alembic downgrade base
-
-# 重新应用所有迁移
-alembic upgrade head
-```
-
----
-
-## 📈 未来规划
-
-- IoT 接入
-- AI 助手集成
-- 智能决策
-
----
+- [x] [通过 Astrbot 推送消息](./tools/astrbot.py)
+- [x] [调用 LLM 对话](./tools/llm.py)
+- [x] [和风天气 API](./tools/qweather.py)
 
 ## 📝 开源协议
 
