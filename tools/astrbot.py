@@ -8,11 +8,14 @@ from dotenv import dotenv_values
 
 key = dotenv_values().get("ASTRBOT_KEY")
 qq = dotenv_values().get("ASTRBOT_QQ")
+qq_group = dotenv_values().get("ASTRBOT_QQ_GROUP")
 weixin = dotenv_values().get("ASTRBOT_WEIXIN")
 url = "http://localhost:6185/api/v1/im/message"
 
 
 def message(msg, session=qq):
+    if not key or not session:
+        return None
     r = requests.post(
         url,
         headers={"Content-Type": "application/json", "X-API-Key": key},
@@ -33,4 +36,5 @@ if __name__ == "__main__":
 今当远离，临表涕零，不知所言。"""
 
     message(txt, qq)
+    message(txt, qq_group)
     message(txt, weixin)
