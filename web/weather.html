@@ -35,7 +35,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 24px;
+            padding: 96px 24px 40px;
             gap: 24px;
         }
 
@@ -183,7 +183,40 @@
             font-size: 14px;
         }
 
+        nav {
+            position: fixed;
+            z-index: 10;
+            top: 18px;
+            left: 50%;
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            transform: translateX(-50%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            background: rgba(28, 33, 68, 0.58);
+            backdrop-filter: blur(14px);
+        }
+
+        nav a {
+            padding: 8px 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            text-decoration: none;
+            border-radius: 999px;
+        }
+
+        nav a.active,
+        nav a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
         @media (max-width: 600px) {
+            nav a {
+                padding: 7px 9px;
+            }
+
             .chart {
                 width: 100%;
             }
@@ -197,6 +230,7 @@
 </head>
 
 <body>
+    <nav><a class="active" href="/weather">天气</a><a href="/fx">外汇</a><a href="/fund">基金</a><a href="/gold">黄金</a></nav>
     <div id="app">
         <!-- 实时天气与空气质量（居中） -->
         <div class="realtime">
