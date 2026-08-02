@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时天气与空气质量</title>
+
+    <!-- 和风天气图标 (属性选择器自动应用字体，仅需 qi-{code} 类) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/qweather-icons@1.8.0/font/qweather-icons.min.css">
+    <!-- Vue3 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.39/dist/vue.global.min.js"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            min-height: 100vh;
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: #fff;
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+        }
+
+        /* flex 布局，垂直居中 */
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        /* 实时数据区 */
+        .realtime {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 28px 36px;
+            min-width: calc((800px - 24px) / 2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title .updated {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* 天气主信息 */
+        .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .weather-main .qi {
+            font-size: 64px;
+            line-height: 1;
+        }
+
+        .weather-main .temp {
+            font-size: 56px;
+            font-weight: 600;
+        }
+
+        .weather-main .text {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .weather-main .temp small {
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        /* 指标网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .grid .item {
+            text-align: center;
+        }
+
+        .grid .item .v {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .grid .item .k {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        /* 数值后的单位标注（如 μg/m³），弱化以突出主数值 */
+        .grid .item .unit {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.35;
+            margin-left: 3px;
+        }
+
+        /* 空气质量主信息 */
+        .air-main {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        .air-main .aqi {
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .air-main .level {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .air-main .pollutant {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+
+        /* 图表区 */
+        .charts {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            max-width: 1080px;
+        }
+
+        .chart {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 16px;
+            width: 800px;
+            height: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .chart {
+                width: 100%;
+            }
+
+            .card {
+                min-width: unset;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 实时天气与空气质量（居中） -->
+        <div class="realtime">
+            <!-- 天气 -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🌤 实时天气</span>
+                    <span class="updated">更新时间：{{ weather ? fmtTime(weather.obs_time) : '加载中…' }}</span>
+                </div>
+                <template v-if="weather">
+                    <div class="weather-main">
+                        <i class="qi" :class="'qi-' + (weather.icon || '999')"></i>
+                        <div class="temp">{{ weather.temp ?? '--' }}<small>°C</small></div>
+                        <div class="text">
+                            {{ weather.weather_text || '--' }}<br>
+                            <small style="opacity:.8">体感 {{ weather.feels_like ?? '--' }}°C</small>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="item">
+                            <div class="v">{{ weather.humidity ?? '--' }}%</div>
+                            <div class="k">湿度</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ weather.wind_dir }} {{ weather.wind_scale }}级</div>
+                            <div class="k">{{ weather.wind_speed }} km/h</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ weather.precip ?? '--' }}</div>
+                            <div class="k">降水 mm</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ weather.pressure ?? '--' }}</div>
+                            <div class="k">气压 hPa</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ weather.vis ?? '--' }}</div>
+                            <div class="k">能见度 km</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ weather.cloud ?? '--' }}%</div>
+                            <div class="k">云量</div>
+                        </div>
+                    </div>
+                </template>
+                <div v-else class="empty">暂无天气数据</div>
+            </div>
+
+            <!-- 空气质量 -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🍃 实时空气质量</span>
+                    <span class="updated">更新时间：{{ air ? fmtTime(air.created_at) : '加载中…' }}</span>
+                </div>
+                <template v-if="air">
+                    <div class="air-main">
+                        <div class="aqi" :style="{ color: aqiColor(air.aqi) }">{{ air.aqi ?? '--' }}</div>
+                        <div>
+                            <div class="level">{{ aqiLevel(air.aqi) }}</div>
+                            <div class="pollutant">首要污染物：{{ air.primary_pollutant || '无' }}</div>
+                            <div class="pollutant">{{ air.stations || '' }}</div>
+                        </div>
+                    </div>
+                    <div class="grid">
+                        <div class="item">
+                            <div class="v">{{ air.pm25 ?? '--' }}</div>
+                            <div class="k">PM2.5</div>
+                            <div class="unit">μg/m³</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ air.pm10 ?? '--' }}</div>
+                            <div class="k">PM10</div>
+                            <div class="unit">μg/m³</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ air.o3 ?? '--' }}</div>
+                            <div class="k">O₃</div>
+                            <div class="unit">μg/m³</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ air.no2 ?? '--' }}</div>
+                            <div class="k">NO₂</div>
+                            <div class="unit">μg/m³</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ air.so2 ?? '--' }}</div>
+                            <div class="k">SO₂</div>
+                            <div class="unit">μg/m³</div>
+                        </div>
+                        <div class="item">
+                            <div class="v">{{ air.co ?? '--' }}</div>
+                            <div class="k">CO</div>
+                            <div class="unit">mg/m³</div>
+                        </div>
+                    </div>
+                </template>
+                <div v-else class="empty">暂无空气质量数据</div>
+            </div>
+        </div>
+
+        <!-- 今日折线图 -->
+        <div class="charts">
+            <div id="weatherChart" class="chart"></div>
+            <div id="airChart" class="chart"></div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, onBeforeUnmount } = Vue;
+
+        // 图表玻璃拟态主题：深色半透明背景上的浅色文字与网格线
+        echarts.registerTheme('glass', {
+            textStyle: { color: 'rgba(255, 255, 255, 0.9)', fontFamily: 'inherit' },
+            title: { textStyle: { color: '#fff' } },
+            legend: { textStyle: { color: 'rgba(255, 255, 255, 0.85)' } },
+            categoryAxis: {
+                axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+                axisTick: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+                axisLabel: { color: 'rgba(255, 255, 255, 0.8)' },
+                splitLine: { show: false },
+            },
+            valueAxis: {
+                axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+                axisTick: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+                axisLabel: { color: 'rgba(255, 255, 255, 0.8)' },
+                splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.15)' } },
+            },
+        });
+
+        createApp({
+            setup() {
+                const weather = ref(null);
+                const air = ref(null);
+                let weatherChart = null;
+                let airChart = null;
+
+                // "YYYY-MM-DD HH:MM:SS" -> "HH:MM"
+                function fmtTime(s) {
+                    if (!s) return '--';
+                    return s.slice(11, 16);
+                }
+
+                // AQI 颜色（中国 MEE 分级）
+                function aqiColor(aqi) {
+                    if (aqi == null) return '#999';
+                    if (aqi <= 50) return '#00b050';
+                    if (aqi <= 100) return '#ffcc00';
+                    if (aqi <= 150) return '#ff7e00';
+                    if (aqi <= 200) return '#ff0000';
+                    if (aqi <= 300) return '#99004c';
+                    return '#7e0023';
+                }
+
+                // AQI 等级文字
+                function aqiLevel(aqi) {
+                    if (aqi == null) return '—';
+                    if (aqi <= 50) return '优';
+                    if (aqi <= 100) return '良';
+                    if (aqi <= 150) return '轻度污染';
+                    if (aqi <= 200) return '中度污染';
+                    if (aqi <= 300) return '重度污染';
+                    return '严重污染';
+                }
+
+                // 拉取实时数据
+                async function loadNow() {
+                    try {
+                        const [w, a] = await Promise.all([
+                            fetch('/weather/now').then(r => r.json()),
+                            fetch('/air/now').then(r => r.json()),
+                        ]);
+                        weather.value = w;
+                        air.value = a;
+                    } catch (e) {
+                        console.error('加载实时数据失败', e);
+                    }
+                }
+
+                // 拉取今日数据并渲染图表
+                async function loadCharts() {
+                    try {
+                        const [wt, at] = await Promise.all([
+                            fetch('/weather/today').then(r => r.json()),
+                            fetch('/air/today').then(r => r.json()),
+                        ]);
+                        renderWeatherChart(wt || []);
+                        renderAirChart(at || []);
+                    } catch (e) {
+                        console.error('加载图表数据失败', e);
+                    }
+                }
+
+                function renderWeatherChart(data) {
+                    const times = data.map(r => fmtTime(r.obs_time));
+                    weatherChart.setOption({
+                        title: { text: '实时天气', left: 'center', textStyle: { fontSize: 16 } },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['温度', '湿度'], bottom: 0 },
+                        grid: { left: 40, right: 55, top: 40, bottom: 40 },
+                        xAxis: { type: 'category', data: times, boundaryGap: false },
+                        yAxis: [
+                            { type: 'value', name: '°C', scale: true, boundaryGap: ['10%', '10%'] },
+                            { type: 'value', name: '%', min: 0, max: 100, position: 'right', splitLine: { show: false } },
+                        ],
+                        series: [
+                            {
+                                name: '温度',
+                                type: 'line',
+                                smooth: true,
+                                symbol: 'circle',
+                                symbolSize: 6,
+                                showSymbol: false,
+                                data: data.map(r => r.temp),
+                                itemStyle: { color: '#ee5a52' },
+                                tooltip: {
+                                    valueFormatter: (value) => value + ' °C'
+                                }
+                            },
+                            {
+                                name: '湿度',
+                                type: 'line',
+                                yAxisIndex: 1,
+                                smooth: true,
+                                symbol: 'circle',
+                                symbolSize: 6,
+                                showSymbol: false,
+                                data: data.map(r => r.humidity),
+                                itemStyle: { color: '#4e89ae' },
+                                tooltip: {
+                                    valueFormatter: (value) => value + ' %'
+                                }
+                            },
+                        ],
+                    });
+                }
+
+                function renderAirChart(data) {
+                    const times = data.map(r => fmtTime(r.created_at));
+                    airChart.setOption({
+                        title: { text: '空气质量', left: 'center', textStyle: { fontSize: 16 } },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['PM2.5', 'PM10'], bottom: 0 },
+                        grid: { left: 40, right: 20, top: 40, bottom: 40 },
+                        xAxis: { type: 'category', data: times, boundaryGap: false },
+                        yAxis: { type: 'value', name: 'μg/m³', scale: true, boundaryGap: ['10%', '10%'] },
+                        series: [
+                            {
+                                name: 'PM2.5',
+                                type: 'line',
+                                smooth: true,
+                                symbol: 'circle',
+                                symbolSize: 6,
+                                showSymbol: false,
+                                data: data.map(r => r.pm25),
+                                itemStyle: { color: '#ee5a52' },
+                                tooltip: {
+                                    valueFormatter: (value) => value + ' µg/m³'
+                                }
+                            },
+                            {
+                                name: 'PM10',
+                                type: 'line',
+                                smooth: true,
+                                symbol: 'circle',
+                                symbolSize: 6,
+                                showSymbol: false,
+                                data: data.map(r => r.pm10),
+                                itemStyle: { color: '#f6b26b' },
+                                tooltip: {
+                                    valueFormatter: (value) => value + ' µg/m³'
+                                }
+                            },
+                        ],
+                    });
+                }
+
+                let timer = null;
+                onMounted(async () => {
+                    weatherChart = echarts.init(document.getElementById('weatherChart'), 'glass');
+                    airChart = echarts.init(document.getElementById('airChart'), 'glass');
+                    window.addEventListener('resize', handleResize);
+                    await Promise.all([loadNow(), loadCharts()]);
+                    // 每 5 分钟刷新一次
+                    timer = setInterval(() => { loadNow(); loadCharts(); }, 5 * 60 * 1000);
+                });
+
+                function handleResize() {
+                    weatherChart && weatherChart.resize();
+                    airChart && airChart.resize();
+                }
+
+                onBeforeUnmount(() => {
+                    clearInterval(timer);
+                    window.removeEventListener('resize', handleResize);
+                    weatherChart && weatherChart.dispose();
+                    airChart && airChart.dispose();
+                });
+
+                return { weather, air, fmtTime, aqiColor, aqiLevel };
+            },
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
