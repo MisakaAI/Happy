@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
+# 初始化数据表
+# python -m cron.save_weather init
+
 # 采集实时天气
-# python -m tools.save_weather weather
+# python -m cron.save_weather weather
 
 # CRON 每 10 分钟执行一次
 # (60分钟/10分钟)*24小时*31天=4464次
 # */10 * * * * cd $(pwd) && PYTHONPATH=$(pwd) $(pwd)/.venv/bin/python -m cron.save_weather weather >> /dev/null 2>> $(pwd)/logs/error.log
 
 # 采集空气质量
-# python -m tools.save_weather air
+# python -m cron.save_weather air
 
 # CRON 每 30 分钟执行一次（避开整点）
 # (60分钟/30分钟)*24小时*31天=1488次
@@ -42,6 +45,53 @@ def to_float(v):
     if v in (None, ""):
         return None
     return float(v)
+
+
+# 数据库表结构定义
+SCHEMA = """
+-- 实时天气表，按观测时间去重
+CREATE TABLE IF NOT EXISTS weather (
+    obs_time     TIMESTAMPTZ PRIMARY KEY,  -- 观测时间
+    temp         INTEGER,                  -- 温度 ℃
+    feels_like   INTEGER,                  -- 体感温度 ℃
+    icon         VARCHAR(8),               -- 天气图标代码
+    weather_text VARCHAR(32),              -- 天气描述
+    wind_360     INTEGER,                  -- 风向角度
+    wind_dir     VARCHAR(32),              -- 风向文字
+    wind_scale   VARCHAR(8),               -- 风力等级
+    wind_speed   INTEGER,                  -- 风速 km/h
+    humidity     INTEGER,                  -- 湿度 %
+    precip       REAL,                     -- 降水量 mm
+    pressure     INTEGER,                  -- 气压 hPa
+    vis          INTEGER,                  -- 能见度 km
+    cloud        INTEGER,                  -- 云量 %
+    dew          INTEGER,                  -- 露点温度 ℃
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 空气质量表，每次采集追加一行
+CREATE TABLE IF NOT EXISTS air_quality (
+    id                SERIAL PRIMARY KEY,
+    aqi               INTEGER,             -- 空气质量指数
+    aqi_level         INTEGER,             -- 指数等级
+    pm25              REAL,                -- PM2.5 浓度
+    pm10              REAL,                -- PM10 浓度
+    no2               REAL,                -- NO2 浓度
+    o3                REAL,                -- O3 浓度
+    so2               REAL,                -- SO2 浓度
+    co                REAL,                -- CO 浓度
+    stations          VARCHAR(30),         -- 监测站名称
+    primary_pollutant VARCHAR(64),         -- 首要污染物
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+"""
+
+
+# 创建 weather 与 air_quality 表（幂等，可重复执行）
+def init_schema(conn) -> None:
+    with conn.cursor() as cur:
+        cur.execute(SCHEMA)
+    conn.commit()
 
 
 # 将实时天气数据写入 weather 表，并按 obs_time 去重
@@ -170,8 +220,16 @@ def main():
 
     # 从命令行参数读取要执行的任务类型
     task = sys.argv[1] if len(sys.argv) > 1 else None
+
+    # init 仅建表，无需鉴权与采集
+    if task == "init":
+        with psycopg.connect(DSN) as conn:
+            init_schema(conn)
+        print("Initialized: weather, air_quality")
+        return
+
     if task not in TASKS:
-        print(f"Usage: python -m tools.save_weather <{'|'.join(TASKS)}>")
+        print(f"Usage: python -m cron.save_weather <init|{'|'.join(TASKS)}>")
         sys.exit(1)
 
     # 生成和风天气 API 鉴权 Token
