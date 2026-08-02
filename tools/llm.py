@@ -31,15 +31,15 @@ GPT = APIConfig(
 
 # 智谱 GLM 模型（通过 OpenAI 兼容接口接入）
 GLM = APIConfig(
-    model="glm-5.2",
-    base_url="https://open.bigmodel.cn/api/coding/paas/v4",
+    model="glm-4.7-flash",
+    base_url="https://open.bigmodel.cn/api/paas/v4",
     api_key=ENV.get("ZAI_API_KEY"),
     thinking_mode="glm",
 )
 
 # DeepSeek 模型（通过 OpenAI 兼容接口接入）
 DEEPSEEK = APIConfig(
-    model="deepseek-v4-pro",
+    model="deepseek-v4-flash",
     base_url="https://api.deepseek.com",
     api_key=ENV.get("DEEPSEEK_API_KEY"),
     thinking_mode="deepseek",
@@ -59,7 +59,7 @@ SYSTEM_PROMPT = """
 
 def chat(
     content: str,
-    api: APIConfig = GLM,
+    api: APIConfig = DEEPSEEK,
     thinking: bool = True,
 ) -> str:
     """调用大模型进行单轮对话，返回模型生成的回复文本。
