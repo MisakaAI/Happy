@@ -75,7 +75,7 @@ def is_trading_time(now: dt.datetime | None = None) -> bool:
 
 def fetch_gold_rates() -> tuple[dt.datetime, list[dict]]:
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+        "User-Agent": os.getenv("USER_AGENT", ""),
         "Accept": "application/json, text/plain, */*",
     }
     session = requests.Session()

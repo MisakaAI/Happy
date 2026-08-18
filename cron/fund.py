@@ -56,7 +56,7 @@ def init_schema(conn) -> None:
 def fetch_fund_buy(code: str) -> dict:
     url = API_URL.format(code=code)
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+        "User-Agent": os.getenv("USER_AGENT", ""),
         "Accept": "*/*",
     }
     r = requests.get(url, headers=headers, timeout=15)

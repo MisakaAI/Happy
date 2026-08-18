@@ -215,3 +215,5 @@ alembic/*
 
 .vscode
 *.pem
+
+cron/yunzhijia.py
